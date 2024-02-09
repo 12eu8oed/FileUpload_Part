@@ -32,12 +32,18 @@ public class UploadController {
 			File saveFile = new File(uploadFolder, multipartFile.getOriginalFilename());
 
 			try {
-				multipartFile.transferTo(saveFile);
+				multipartFile.transferTo(saveFile); //설정한 경로에 파일 저장
 
 			} catch (Exception e) {
 				log.error(e.getMessage());
 			}
 
 		}
+	}
+	
+	@GetMapping("/uploadAjax")
+	public void uploadAjax() {
+
+		log.info("uploadAjax");
 	}
 }
