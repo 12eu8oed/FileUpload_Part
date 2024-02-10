@@ -53,12 +53,8 @@ public class UploadController {
 		log.info("Update Ajax POST...............");
 		
 		String uploadFolder = "C:\\upload";
-		log.info("로그 테스트중1");
-		
 		
 		for(MultipartFile multipartFile : uploadFile) {
-			
-			log.info("로그 테스트중2");
 			log.info("--------------------------------------");
 			log.info("Upload File Name: " + multipartFile.getOriginalFilename());
 			log.info("Upload File Size: " + multipartFile.getSize());
