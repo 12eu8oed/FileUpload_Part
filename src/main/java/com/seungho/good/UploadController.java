@@ -1,6 +1,8 @@
 package com.seungho.good;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,7 +34,7 @@ public class UploadController {
 			File saveFile = new File(uploadFolder, multipartFile.getOriginalFilename());
 
 			try {
-				multipartFile.transferTo(saveFile); //설정한 경로에 파일 저장
+				multipartFile.transferTo(saveFile); // 설정한 경로에 파일 저장
 
 			} catch (Exception e) {
 				log.error(e.getMessage());
@@ -40,32 +42,54 @@ public class UploadController {
 
 		}
 	}
-	
+
 	@GetMapping("/uploadAjax")
 	public void uploadAjax() {
 
 		log.info("uploadAjax");
 	}
-	
+
+	// 폴더 생성 method
+	private String getFolder() {
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+		Date date = new Date();
+
+		String str = sdf.format(date);
+
+		return str.replace("-", File.separator);
+	}
+
 	@PostMapping("/uploadAjaxAction")
 	public void uploadAjaxPost(MultipartFile[] uploadFile) {
-		
+
 		log.info("Update Ajax POST...............");
-		
+
 		String uploadFolder = "C:\\upload";
-		
-		for(MultipartFile multipartFile : uploadFile) {
+
+		String uploadFolderPath = getFolder();
+
+		// make folder --------
+		File uploadPath = new File(uploadFolder, uploadFolderPath); //upload 밑에 현재날짜를 기반으로 폴더를 만들어주세용
+
+		if (uploadPath.exists() == false) //파일이 존재하지 않다면 
+			uploadPath.mkdirs();  //날짜 기반으로 파일을 만들어 주십시오
+		// make yyyy/MM/dd folder
+
+		for (MultipartFile multipartFile : uploadFile) {
 			log.info("--------------------------------------");
 			log.info("Upload File Name: " + multipartFile.getOriginalFilename());
 			log.info("Upload File Size: " + multipartFile.getSize());
-			
+
 			String uploadFileName = multipartFile.getOriginalFilename();
-			
-			//IE has file path
-			uploadFileName = uploadFileName.substring(uploadFileName.lastIndexOf("\\")+1);
-			
-			File saveFile = new File(uploadFolder, uploadFileName);
-			
+
+			// IE has file path
+			uploadFileName = uploadFileName.substring(uploadFileName.lastIndexOf("\\") + 1);
+
+//			File saveFile = new File(uploadFolder, uploadFileName);
+			File saveFile = new File(uploadPath, uploadFileName);  //날짜를 기반으로 만들어진 폴더 안에 사용자의 파일이 저장되어진다.
+
 			try {
 				multipartFile.transferTo(saveFile);
 			} catch (Exception e) {
