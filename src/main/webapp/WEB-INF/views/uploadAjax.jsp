@@ -60,13 +60,14 @@
 				processData : false,
 				contentType : false,
 				data : formData,
-				type : 'POST',
-				success : function(result) {
-					alert("Uploaded");
-				},
-				error : function(e) {
-					console.log("Error", e);
-				}
+					type : 'POST',
+					dataType: 'json',
+					success : function(result) {
+						alert("Uploaded", result);
+					},
+					error : function(e) {
+						console.log("Error", e);
+					}
 			}); //$.ajax
 		});
 	});

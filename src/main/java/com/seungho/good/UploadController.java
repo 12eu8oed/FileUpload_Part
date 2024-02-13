@@ -4,14 +4,22 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.seungho.domain.AttachFileDTO;
 
 import lombok.extern.log4j.Log4j;
 import net.coobird.thumbnailator.Thumbnailator;
@@ -53,11 +61,13 @@ public class UploadController {
 		log.info("uploadAjax");
 	}
 
-	@PostMapping("/uploadAjaxAction")
-	public void uploadAjaxPost(MultipartFile[] uploadFile) {
+	@PostMapping(value = "/uploadAjaxAction", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody 
+	public ResponseEntity<List<AttachFileDTO>> uploadAjaxPost(MultipartFile[] uploadFile) {
 
-		log.info("Update Ajax POST...............");
+//		log.info("Update Ajax POST...............");
 
+		List<AttachFileDTO> list = new ArrayList<AttachFileDTO>();		
 		String uploadFolder = "C:\\upload";
 
 		String uploadFolderPath = getFolder();
@@ -70,17 +80,21 @@ public class UploadController {
 		// make yyyy/MM/dd folder
 
 		for (MultipartFile multipartFile : uploadFile) {
-			log.info("--------------------------------------");
-			log.info("Upload File Name: " + multipartFile.getOriginalFilename());
-			log.info("Upload File Size: " + multipartFile.getSize());
-
+			
+			AttachFileDTO attachDTO = new AttachFileDTO();
+			
+//			log.info("--------------------------------------");
+//			log.info("Upload File Name: " + multipartFile.getOriginalFilename());
+//			log.info("Upload File Size: " + multipartFile.getSize());
+			
 			String uploadFileName = multipartFile.getOriginalFilename();
 
-			log.info("자르기전 파일 이름: " + uploadFileName);
 			// IE has file path
 			uploadFileName = uploadFileName.substring(uploadFileName.lastIndexOf("\\") + 1);
 			log.info("only file name: " + uploadFileName);
 
+			attachDTO.setFileName(uploadFileName);
+			
 			UUID uuid = UUID.randomUUID(); // 랜덤값을 형성함
 			uploadFileName = uuid.toString() + "_" + uploadFileName; // 랜덤값_filename 으로 이름을 지어 같은 파일이 들어오더라도 난수를 붙여서 다른 파일로 인식되게 한다.
 
@@ -88,8 +102,14 @@ public class UploadController {
 				File saveFile = new File(uploadPath, uploadFileName); // 날짜를 기반으로 만들어진 폴더 안에 사용자의 파일이 저장되어진다.
 				multipartFile.transferTo(saveFile);
 				
-				//check file image
+				attachDTO.setUuid(uuid.toString());
+				attachDTO.setUploadPath(uploadFolderPath);
+				
+				//check file type image
 				if(checkImageType(saveFile)) {
+
+					attachDTO.setImage(true);
+						
 					FileOutputStream thumnail = new FileOutputStream(new File(uploadPath, "s_" + uploadFileName));
 					
 					Thumbnailator.createThumbnail(multipartFile.getInputStream(), thumnail, 100, 100); //Thumbnail 생성
@@ -97,11 +117,14 @@ public class UploadController {
 					log.info("Check Image : " + thumnail);
 					thumnail.close();
 				}
+				//add to List
+				list.add(attachDTO);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				log.error(e.getMessage());
 			}
-		}
+		}  //end for
+		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
 
 	// 폴더 생성 method
