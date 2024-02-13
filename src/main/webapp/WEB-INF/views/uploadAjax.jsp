@@ -24,7 +24,7 @@
 <script>
 	$(document).ready(function() {
 
-		var regex = new RegExp("(.*?)\.(exe|sh|zip|alz)$");
+		var regex = new RegExp("(.*?)\.(exe|sh|zip|alz)$"); //확장자명 검사
 		var maxSize = 5242880; //5MB
 
 		function checkExtension(fileName, fileSize) {
@@ -39,6 +39,8 @@
 			}
 			return true;
 		}
+
+		var cloneObj = $(".uploadDiv").clone(); //파일을 선택하기 전의 상태, 초기상태를 복제해 놓는다.
 
 		$("#uploadBtn").on("click", function(e) {
 			var formData = new FormData();
@@ -63,7 +65,9 @@
 					type : 'POST',
 					dataType: 'json',
 					success : function(result) {
-						alert("Uploaded", result);
+						console.log("Uploaded", result);
+
+						$(".uploadDiv").html(cloneObj.html()); //초기상태의 html의 내용을 가지고 와서 .uploadDiv를 초기화 
 					},
 					error : function(e) {
 						console.log("Error", e);
