@@ -7,6 +7,28 @@
 <title>uploadAjax</title>
 
 </head>
+<style>
+	.uploadResult {
+        width: 100%;
+        background-color: gray;
+    }
+
+    .uploadResult ul {
+        display: flex;
+        flex-flow: row;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .uploadResult ul li {
+        list-style: none;
+        padding: 10px;
+    }
+
+    .uploadResult ul li img {
+        width: 20px;
+    }
+</style>
 <body>
 	<h1>Upload with Ajax</h1>
 	<div class='uploadDiv'>
@@ -52,9 +74,15 @@
 			function showUploadedFile(uploadResultArr) {
 				var str = "";
 
-				$(uploadResultArr).each(function(i, obj) {
-					str += "<li>" + obj.fileName + "</li>";
-				});
+				$(uploadResultArr).each(
+					function(i, obj) {
+						if(!obj.image) {
+							str += "<li><img src='resources/img/attach.png'>"
+								+ obj.fileName + "</li>";
+						} else {
+							str += "<li>" + obj.fileName + "</li>";
+						}	
+					});
 
 				uploadResult.append(str);
 			}
