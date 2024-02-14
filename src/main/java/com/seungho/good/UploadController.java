@@ -9,11 +9,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -62,12 +64,12 @@ public class UploadController {
 	}
 
 	@PostMapping(value = "/uploadAjaxAction", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	@ResponseBody 
+	@ResponseBody
 	public ResponseEntity<List<AttachFileDTO>> uploadAjaxPost(MultipartFile[] uploadFile) {
 
-//		log.info("Update Ajax POST...............");
+		// log.info("Update Ajax POST...............");
 
-		List<AttachFileDTO> list = new ArrayList<AttachFileDTO>();		
+		List<AttachFileDTO> list = new ArrayList<AttachFileDTO>();
 		String uploadFolder = "C:\\upload";
 
 		String uploadFolderPath = getFolder();
@@ -80,13 +82,13 @@ public class UploadController {
 		// make yyyy/MM/dd folder
 
 		for (MultipartFile multipartFile : uploadFile) {
-			
+
 			AttachFileDTO attachDTO = new AttachFileDTO();
-			
-//			log.info("--------------------------------------");
-//			log.info("Upload File Name: " + multipartFile.getOriginalFilename());
-//			log.info("Upload File Size: " + multipartFile.getSize());
-			
+
+			// log.info("--------------------------------------");
+			// log.info("Upload File Name: " + multipartFile.getOriginalFilename());
+			// log.info("Upload File Size: " + multipartFile.getSize());
+
 			String uploadFileName = multipartFile.getOriginalFilename();
 
 			// IE has file path
@@ -94,37 +96,62 @@ public class UploadController {
 			log.info("only file name: " + uploadFileName);
 
 			attachDTO.setFileName(uploadFileName);
-			
+
 			UUID uuid = UUID.randomUUID(); // 랜덤값을 형성함
-			uploadFileName = uuid.toString() + "_" + uploadFileName; // 랜덤값_filename 으로 이름을 지어 같은 파일이 들어오더라도 난수를 붙여서 다른 파일로 인식되게 한다.
+			uploadFileName = uuid.toString() + "_" + uploadFileName; // 랜덤값_filename 으로 이름을 지어 같은 파일이 들어오더라도 난수를 붙여서 다른
+																		// 파일로 인식되게 한다.
 
 			try {
 				File saveFile = new File(uploadPath, uploadFileName); // 날짜를 기반으로 만들어진 폴더 안에 사용자의 파일이 저장되어진다.
 				multipartFile.transferTo(saveFile);
-				
+
 				attachDTO.setUuid(uuid.toString());
 				attachDTO.setUploadPath(uploadFolderPath);
-				
-				//check file type image
-				if(checkImageType(saveFile)) {
+
+				// check file type image
+				if (checkImageType(saveFile)) {
 
 					attachDTO.setImage(true);
-						
+
 					FileOutputStream thumnail = new FileOutputStream(new File(uploadPath, "s_" + uploadFileName));
-					
-					Thumbnailator.createThumbnail(multipartFile.getInputStream(), thumnail, 100, 100); //Thumbnail 생성
+
+					Thumbnailator.createThumbnail(multipartFile.getInputStream(), thumnail, 100, 100); // Thumbnail 생성
 
 					log.info("Check Image : " + thumnail);
 					thumnail.close();
 				}
-				//add to List
+				// add to List
 				list.add(attachDTO);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				log.error(e.getMessage());
 			}
-		}  //end for
+		} // end for
 		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+	@GetMapping("/display")
+	@ResponseBody
+	public ResponseEntity<byte[]> getFile(String fileName) {
+
+		log.info("fileName: " + fileName);
+
+		File file = new File("c:\\upload\\"+fileName);
+
+		log.info("file: " + file);
+
+		ResponseEntity<byte[]> result = null;
+
+		try {
+			HttpHeaders header = new HttpHeaders();
+
+			header.add("Content-Type", Files.probeContentType(file.toPath()));
+			result = new ResponseEntity<>(FileCopyUtils.copyToByteArray(file), header, HttpStatus.OK);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		return result;
 	}
 
 	// 폴더 생성 method
@@ -145,7 +172,7 @@ public class UploadController {
 			String contentType = Files.probeContentType(file.toPath());
 
 			return contentType.startsWith("image"); // "접두어로 image가 오는지 검사"
-			
+
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
