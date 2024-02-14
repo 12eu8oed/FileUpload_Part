@@ -12,6 +12,12 @@
 	<div class='uploadDiv'>
 		<input type='file' name='uploadFile' multiple>
 	</div>
+
+	<div class="uploadResult">
+		<ul>
+
+		</ul>
+	</div>
 	<button id='uploadBtn'>Upload</button>
 
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -41,6 +47,17 @@
 		}
 
 		var cloneObj = $(".uploadDiv").clone(); //파일을 선택하기 전의 상태, 초기상태를 복제해 놓는다.
+		
+		var uploadResult = $(".uploadResult ul");
+			function showUploadedFile(uploadResultArr) {
+				var str = "";
+
+				$(uploadResultArr).each(function(i, obj) {
+					str += "<li>" + obj.fileName + "</li>";
+				});
+
+				uploadResult.append(str);
+			}
 
 		$("#uploadBtn").on("click", function(e) {
 			var formData = new FormData();
@@ -66,6 +83,8 @@
 					dataType: 'json',
 					success : function(result) {
 						console.log("Uploaded", result);
+
+						showUploadedFile(result);
 
 						$(".uploadDiv").html(cloneObj.html()); //초기상태의 html의 내용을 가지고 와서 .uploadDiv를 초기화 
 					},
